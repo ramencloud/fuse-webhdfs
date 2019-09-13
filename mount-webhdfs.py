@@ -4,6 +4,7 @@ from __future__ import print_function, absolute_import, division
 import os
 import sys
 import logging
+from config.webhdfs import commandline_parser, configure
 from datetime import datetime
 from errno import ENOENT, ENOSPC
 from stat import S_IFDIR, S_IFLNK, S_IFREG
@@ -24,8 +25,8 @@ class WebHDFS(LoggingMixIn, Operations):
     A simple Webhdfs filesystem.
     """
 
-    def __init__(self):
-        self.client = webhdfs.webhdfs_connect()
+    def __init__(self, config):
+        self.client = webhdfs.webhdfs_connect(config)
         self._stats_cache = {}
         self._listdir_cache = {}
         self._enoent_cache = {}
@@ -199,12 +200,13 @@ class WebHDFS(LoggingMixIn, Operations):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        print('usage: %s <mountpoint>' % sys.argv[0])
-        sys.exit(1)
+    parser = commandline_parser()
+    parser.add_argument('mountpoint', help='Mount directory')
+
+    config = configure(parser)
 
     logging.basicConfig(level=logging.INFO)
 
-    print("Mounting {} at {}".format(webhdfs.cfg['DEFAULT']['HDFS_BASEURL'], sys.argv[1]))
-    mountpoint = sys.argv[1]
-    fuse = FUSE(operations=WebHDFS(), mountpoint=sys.argv[1], foreground=True, nothreads=True, big_writes=True, max_read=1024*1024, max_write=1024*1024)
+    print("Mounting {} at {}".format(config.hdfs_baseurl, config.mountpoint))
+
+    fuse = FUSE(operations=WebHDFS(config), mountpoint=config.mountpoint, foreground=False, nothreads=True, big_writes=True, max_read=1024*1024, max_write=1024*1024)

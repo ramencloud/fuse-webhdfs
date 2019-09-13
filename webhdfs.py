@@ -4,29 +4,40 @@ import os
 import getpass
 import pwd
 import grp
+from config.webhdfs import configure
 from netrc import netrc, NetrcParseError
 from pywebhdfs.webhdfs import PyWebHdfsClient
 from stat import S_IFDIR, S_IFLNK, S_IFREG
 from time import time
+from distutils.util import strtobool
 import datetime
 import configparser
 
 cfg = configparser.ConfigParser()
 def write_default_config():
+    config = configure()
     if not os.path.exists(os.environ['HOME'] + '/.config'):
         os.makedirs(os.environ['HOME'] + '/.config')
-    webhdfs_host = input("WebHDFS hostname (without https): ")
+    webhdfs_host = input(f"WebHDFS hostname [{config.hdfs_host}]: ") or config.hdfs_host
     cfg.set('DEFAULT', 'HDFS_HOST', webhdfs_host)
-    webhdfs_baseurl_default = "https://{}:8443/gateway/webhdfs/webhdfs/v1/".format(webhdfs_host)
-    webhdfs_baseurl = input("HDFS base URL [{}]: ".format(webhdfs_baseurl_default)) or webhdfs_baseurl_default
-    cfg.set('DEFAULT', 'HDFS_BASEURL', webhdfs_baseurl)
-    if webhdfs_baseurl.lower().startswith('https'):
-        webhdfs_cert = input("HDFS web server certificate path [/etc/ssl/certs/ca-certificates.crt]: ") or "/etc/ssl/certs/ca-certificates.crt"
+
+    configure_knox = input(f"Configure With Apache Knox Gateway (Yes/No)? "
+                           f"[{config.use_apache_knox and 'Yes' or 'No'}]: ") or (config.use_apache_knox
+                                                                                  and 'Yes'
+                                                                                  or 'No')
+    cfg.set('DEFAULT', 'USE_APACHE_KNOX', configure_knox)
+
+    if strtobool(configure_knox):
+        webhdfs_username = input("HDFS username: ")
+        cfg.set('DEFAULT', 'HDFS_USERNAME', webhdfs_username)
+        webhdfs_password = getpass.getpass(prompt="HDFS password: ")
+        cfg.set('DEFAULT', 'HDFS_PASSWORD', webhdfs_password)
+        webhdfs_cert = input(f"HDFS web server certificate path [{config.hdfs_cert}: ") or config.hdfs_cert
         cfg.set('DEFAULT', 'HDFS_CERT', webhdfs_cert)
-    webhdfs_username = input("HDFS username: ")
-    cfg.set('DEFAULT', 'HDFS_USERNAME', webhdfs_username)
-    webhdfs_password = getpass.getpass(prompt="HDFS password: ")
-    cfg.set('DEFAULT', 'HDFS_PASSWORD', webhdfs_password)
+    else:
+        webhdfs_port = input(f"WebHDFS port [{config.hdfs_port}]: ") or config.hdfs_port
+        cfg.set('DEFAULT', 'HDFS_PORT', webhdfs_port)
+
     with open(os.environ['HOME'] + '/.config/webhdfs.ini', 'w') as configfile:
         cfg.write(configfile)
 
@@ -35,7 +46,7 @@ if not os.path.exists(os.environ['HOME'] + '/.config/webhdfs.ini'):
 
 cfg.read(os.environ['HOME'] + '/.config/webhdfs.ini')
 
-def get_auth():
+def get_auth(config):
     username = password = None
     try:
         username, account, password = netrc().authenticators(cfg['DEFAULT']['HDFS_HOST'])
@@ -82,10 +93,16 @@ def group_to_gid(group):
     gid_cache[group] = 0
     return 0
 
-def webhdfs_connect():
-    webhdfs = PyWebHdfsClient(base_uri_pattern=cfg['DEFAULT']['HDFS_BASEURL'],
-                              request_extra_opts={'verify': cfg['DEFAULT'].get('HDFS_CERT', None),
-                                                  'auth': get_auth()})
+def webhdfs_connect(config):
+    request_extra_opts = {}
+    if config.use_apache_knox:
+        request_extra_opts['verify'] = config.hdfs_cert
+        request_extra_opts['auth'] = get_auth(config)
+    if config.proxy_host:
+        request_extra_opts['proxies'] ={'http': f'socks5h://{config.proxy_host}:{config.proxy_port}',
+                                        'https': f'socks5h://{config.proxy_host}:{config.proxy_port}'}
+    webhdfs = PyWebHdfsClient(base_uri_pattern=config.hdfs_baseurl,
+                              request_extra_opts=request_extra_opts)
     return webhdfs
 
 def webhdfs_entry_to_dict(s):
@@ -112,7 +129,7 @@ def webhdfs_entry_to_dict(s):
     return sd
 
 if __name__ == '__main__':
-    webhdfs = webhdfs_connect()
+    webhdfs = webhdfs_connect(configure())
     now = time()
     for s in webhdfs.list_dir('/')["FileStatuses"]["FileStatus"]:
         sd = webhdfs_entry_to_dict(s)
