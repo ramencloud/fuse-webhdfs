@@ -16,44 +16,29 @@ or on RedHat with:
 sudo yum install fuse
 ```
 
-after that, you can simply run:
-
+To install mount-webhdfs binary run:
 ```
-pip3 install fuse-webhdfs
+make
+sudo make install
 ```
-
-and this install fuse-webhdfs with all its dependencies
-
-## IBM CEDP users
-
-Please run the following script from the contrib directory:
-
-```
-contrib/ibm-cedp-webhdfs-setup
-```
-
-and provide your w3 SSO credentials
 
 # General Usage
 
-In one terminal type:
-
 ```
 mkdir -p ~/fuse-webhdfs
-python3 mount-webhdfs.py ~/fuse-webhdfs
-```
-You now have to type in your HDFS endpoint parameters and HDFS (Knox) username and password.
-
-All parameters (including your password) will be saved in plain text in `$HOME/.config/webhdfs.ini`.
-If this is an issue for you, please create a pull request and I will be happy to consider merging it.
-
-
-After mounting, in other terminal(s) you will be able to list files, read them, etc.
-For example:
-
-```
-ls -l ~/fuse-webhdfs/tmp
-echo "this is a test" > ~/fuse-webhdfs/tmp/test
-cat ~/fuse-webhdfs/tmp/test
+mount-webhdfs <server[:port]> fuse-webhdfs
 ```
 
+You will be able to list files, read them, etc.
+
+
+# Proxy connection
+
+`mount-webhdfs` accepts `--socks5h` argument if you are not in the same network as your WebHDFS installation.
+
+You have to setup the proxy yourself, you can do it using `ssh`:
+```
+ssh -D 1080 -f -N username@server
+> username@server's password:
+mount-webhdfs <server[:port]> --socks5h localhost
+```

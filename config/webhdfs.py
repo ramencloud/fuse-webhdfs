@@ -1,9 +1,6 @@
 import argparse
-import configparser
 from dataclasses import dataclass
-from distutils.util import strtobool
 from sys import argv
-from os import environ, path
 
 @dataclass
 class WebHDFSConfig:
