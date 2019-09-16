@@ -7,7 +7,6 @@ import logging
 from config.webhdfs import commandline_parser, configure
 from datetime import datetime
 from errno import ENOENT, ENOSPC
-from stat import S_IFDIR, S_IFLNK, S_IFREG
 from fuse import FUSE, FuseOSError, Operations, LoggingMixIn
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.SecurityWarning)
