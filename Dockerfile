@@ -7,7 +7,7 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys F23C5A6CF475977595C
 RUN apt update && apt install -y python3.7-dev
 ADD https://bootstrap.pypa.io/get-pip.py get-pip.py
 RUN python3.7 get-pip.py
-RUN git clone https://github.com/ramencloud/fuse-webhdfs
+COPY . fuse-webhdfs/
 WORKDIR fuse-webhdfs
 RUN pip3 install -r requirements.txt
 RUN pip3 install pyinstaller
