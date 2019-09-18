@@ -2,6 +2,7 @@ import argparse
 from dataclasses import dataclass
 from sys import argv
 
+
 @dataclass
 class WebHDFSConfig:
     hdfs_host: str
@@ -29,10 +30,11 @@ class Split(argparse.Action):
             setattr(namespace, dest, value)
 
 
-def commandline_parser():
-    DEFAULT_HDFS_PORT = '30070'
-    DEFAULT_PROXY_PORT = '1080'
+DEFAULT_HDFS_PORT = '30070'
+DEFAULT_PROXY_PORT = '1080'
 
+
+def commandline_parser():
     parser = argparse.ArgumentParser()
 
     parser.add_argument('hdfs_host:hdfs_port', action=Split,

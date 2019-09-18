@@ -1,12 +1,7 @@
-from six.moves import http_client
+from http import HTTPStatus
 import re
-
 import requests
-try:
-    from urllib.parse import quote, quote_plus
-except ImportError:
-    from urllib import quote, quote_plus
-
+from urllib.parse import quote, quote_plus
 from pywebhdfs import errors, operations
 
 
@@ -102,7 +97,7 @@ class PyWebHdfsClient(object):
         init_response = self._resolve_host(self.session.put, False,
                                            path, operations.CREATE,
                                            **optional_args)
-        if not init_response.status_code == http_client.TEMPORARY_REDIRECT:
+        if not init_response.status_code == HTTPStatus.TEMPORARY_REDIRECT:
             _raise_pywebhdfs_exception(
                 init_response.status_code, init_response.content)
 
@@ -115,7 +110,7 @@ class PyWebHdfsClient(object):
             headers={'content-type': 'application/octet-stream'},
             **self.request_extra_opts)
 
-        if not response.status_code == http_client.CREATED:
+        if not response.status_code == HTTPStatus.CREATED:
             _raise_pywebhdfs_exception(response.status_code, response.content)
 
         return True
@@ -159,7 +154,7 @@ class PyWebHdfsClient(object):
         init_response = self._resolve_host(self.session.post, False,
                                            path, operations.APPEND,
                                            **optional_args)
-        if not init_response.status_code == http_client.TEMPORARY_REDIRECT:
+        if not init_response.status_code == HTTPStatus.TEMPORARY_REDIRECT:
             _raise_pywebhdfs_exception(
                 init_response.status_code, init_response.content)
 
@@ -173,7 +168,7 @@ class PyWebHdfsClient(object):
             **self.request_extra_opts
         )
 
-        if not response.status_code == http_client.OK:
+        if not response.status_code == HTTPStatus.OK:
             _raise_pywebhdfs_exception(response.status_code, response.content)
 
         return True
@@ -208,7 +203,7 @@ class PyWebHdfsClient(object):
         response = self._resolve_host(self.session.get, True,
                                       path, operations.OPEN,
                                       **optional_args)
-        if not response.status_code == http_client.OK:
+        if not response.status_code == HTTPStatus.OK:
             _raise_pywebhdfs_exception(response.status_code, response.content)
 
         return response.content
@@ -243,7 +238,7 @@ class PyWebHdfsClient(object):
         response = self._resolve_host(self.session.get, True,
                                       path, operations.OPEN, stream=True,
                                       **optional_args)
-        if not response.status_code == http_client.OK:
+        if not response.status_code == HTTPStatus.OK:
             _raise_pywebhdfs_exception(response.status_code, response.content)
 
         for chunk in response.iter_content(chunk_size):
@@ -278,7 +273,7 @@ class PyWebHdfsClient(object):
         response = self._resolve_host(self.session.put, True,
                                       path, operations.MKDIRS,
                                       **optional_args)
-        if not response.status_code == http_client.OK:
+        if not response.status_code == HTTPStatus.OK:
             _raise_pywebhdfs_exception(response.status_code, response.content)
 
         return True
@@ -307,7 +302,7 @@ class PyWebHdfsClient(object):
         response = self._resolve_host(self.session.put, True,
                                       path, operations.RENAME,
                                       destination=destination_path)
-        if not response.status_code == http_client.OK:
+        if not response.status_code == HTTPStatus.OK:
             _raise_pywebhdfs_exception(response.status_code, response.content)
 
         return response.json()
@@ -338,7 +333,7 @@ class PyWebHdfsClient(object):
         response = self._resolve_host(self.session.delete, True,
                                       path, operations.DELETE,
                                       recursive=recursive)
-        if not response.status_code == http_client.OK:
+        if not response.status_code == HTTPStatus.OK:
             _raise_pywebhdfs_exception(response.status_code, response.content)
 
         return True
@@ -395,7 +390,7 @@ class PyWebHdfsClient(object):
 
         response = self._resolve_host(self.session.get, True,
                                       path, operations.GETFILESTATUS)
-        if not response.status_code == http_client.OK:
+        if not response.status_code == HTTPStatus.OK:
             _raise_pywebhdfs_exception(response.status_code, response.content)
 
         return response.json()
@@ -430,7 +425,7 @@ class PyWebHdfsClient(object):
 
         response = self._resolve_host(self.session.get, True,
                                       path, operations.GETCONTENTSUMMARY)
-        if not response.status_code == http_client.OK:
+        if not response.status_code == HTTPStatus.OK:
             _raise_pywebhdfs_exception(response.status_code, response.content)
 
         return response.json()
@@ -461,7 +456,7 @@ class PyWebHdfsClient(object):
 
         response = self._resolve_host(self.session.get, True,
                                       path, operations.GETFILECHECKSUM)
-        if not response.status_code == http_client.OK:
+        if not response.status_code == HTTPStatus.OK:
             _raise_pywebhdfs_exception(response.status_code, response.content)
 
         return response.json()
@@ -516,7 +511,7 @@ class PyWebHdfsClient(object):
 
         response = self._resolve_host(self.session.get, True,
                                       path, operations.LISTSTATUS)
-        if not response.status_code == http_client.OK:
+        if not response.status_code == HTTPStatus.OK:
             _raise_pywebhdfs_exception(response.status_code, response.content)
 
         return response.json()
@@ -542,9 +537,9 @@ class PyWebHdfsClient(object):
         """
         response = self._resolve_host(self.session.get, True,
                                       path, operations.GETFILESTATUS)
-        if response.status_code == http_client.OK:
+        if response.status_code == HTTPStatus.OK:
             return True
-        elif response.status_code == http_client.NOT_FOUND:
+        elif response.status_code == HTTPStatus.NOT_FOUND:
             return False
         _raise_pywebhdfs_exception(response.status_code, response.content)
 
@@ -571,7 +566,7 @@ class PyWebHdfsClient(object):
         response = self._resolve_host(self.session.put, False,
                                       path, operations.SETPERMISSION,
                                       permission=permission)
-        if not response.status_code == http_client.OK:
+        if not response.status_code == HTTPStatus.OK:
             _raise_pywebhdfs_exception(response.status_code, response.content)
 
         return True
@@ -600,7 +595,7 @@ class PyWebHdfsClient(object):
         response = self._resolve_host(self.session.put, False,
                                       path, operations.SETPERMISSION,
                                       owner=owner, group=group)
-        if not response.status_code == http_client.OK:
+        if not response.status_code == HTTPStatus.OK:
             _raise_pywebhdfs_exception(response.status_code, response.content)
 
         return True
@@ -639,7 +634,7 @@ class PyWebHdfsClient(object):
                                       path, operations.GETXATTRS,
                                       **kwd_params)
 
-        if not response.status_code == http_client.OK:
+        if not response.status_code == HTTPStatus.OK:
             _raise_pywebhdfs_exception(response.status_code, response.content)
         return response.json()
 
@@ -676,7 +671,7 @@ class PyWebHdfsClient(object):
                                       path, operations.SETXATTR,
                                       **kwd_params)
 
-        if not response.status_code == http_client.OK:
+        if not response.status_code == HTTPStatus.OK:
             _raise_pywebhdfs_exception(response.status_code, response.content)
         return True
 
@@ -701,7 +696,7 @@ class PyWebHdfsClient(object):
         response = self._resolve_host(self.session.get, True,
                                       path, operations.LISTXATTRS)
 
-        if not response.status_code == http_client.OK:
+        if not response.status_code == HTTPStatus.OK:
             _raise_pywebhdfs_exception(response.status_code, response.content)
         return response.json()
 
@@ -731,7 +726,7 @@ class PyWebHdfsClient(object):
                                       path, operations.REMOVEXATTR,
                                       **kwd_params)
 
-        if not response.status_code == http_client.OK:
+        if not response.status_code == HTTPStatus.OK:
             _raise_pywebhdfs_exception(response.status_code, response.content)
         return True
 
@@ -808,13 +803,15 @@ class PyWebHdfsClient(object):
 
 def _raise_pywebhdfs_exception(resp_code, message=None):
 
-    if resp_code == http_client.BAD_REQUEST:
+    if resp_code == HTTPStatus.BAD_REQUEST:
         raise errors.BadRequest(msg=message)
-    elif resp_code == http_client.UNAUTHORIZED:
+    elif resp_code == HTTPStatus.UNAUTHORIZED:
         raise errors.Unauthorized(msg=message)
-    elif resp_code == http_client.NOT_FOUND:
+    elif resp_code == HTTPStatus.FORBIDDEN:
+        raise errors.Forbidden(msg=message)
+    elif resp_code == HTTPStatus.NOT_FOUND:
         raise errors.FileNotFound(msg=message)
-    elif resp_code == http_client.METHOD_NOT_ALLOWED:
+    elif resp_code == HTTPStatus.METHOD_NOT_ALLOWED:
         raise errors.MethodNotAllowed(msg=message)
     else:
         raise errors.PyWebHdfsException(msg=message)
@@ -824,7 +821,7 @@ def _is_standby_exception(response):
     """
     check whether response is StandbyException or not.
     """
-    if response.status_code == http_client.FORBIDDEN:
+    if response.status_code == HTTPStatus.FORBIDDEN:
         try:
             body = response.json()
             exception = body["RemoteException"]["exception"]

@@ -1,4 +1,3 @@
 fusepy
 urllib3
-six
 requests[socks]

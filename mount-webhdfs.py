@@ -6,18 +6,18 @@ import sys
 import logging
 from config.webhdfs import commandline_parser, configure
 from datetime import datetime
-from errno import ENOENT, ENOSPC
+from errno import EACCES, ENOENT, ENOTSUP, ENOSPC
 from fuse import FUSE, FuseOSError, Operations, LoggingMixIn
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.SecurityWarning)
 
 sys.path.insert(0, ".")
-import pywebhdfs
+import pywebhdfs.errors
 import webhdfs
 
 logger = logging.getLogger('Webhdfs')
 CACHE_MAX_SECONDS = 30
-mountpoint = ""
+
 
 class WebHDFS(LoggingMixIn, Operations):
     """
@@ -120,10 +120,10 @@ class WebHDFS(LoggingMixIn, Operations):
             logger.warning("Can't write in the middle of the file %s. "
                            "Tried to write %d bytes at offset %d < file size %d",
                            path, len(data), offset, st['st_size'])
-            raise FuseOSError(ENOSPC)
+            raise FuseOSError(ENOTSUP)
         if offset > st['st_size']:
             logger.warning("Can't write to %s at offset %d > file size %d", path, offset, st['st_size'])
-            raise FuseOSError(ENOSPC)
+            raise FuseOSError(ENOTSUP)
         data_sub = data[st['st_size'] - offset:]
         # logger.info("Writing %s: %d bytes at offsets %d..%d",
         #             path, len(data_sub), st['st_size'], st['st_size']+len(data_sub))

@@ -13,6 +13,10 @@ class Unauthorized(PyWebHdfsException):
     pass
 
 
+class Forbidden(PyWebHdfsException):
+    pass
+
+
 class FileNotFound(PyWebHdfsException):
     pass
 
