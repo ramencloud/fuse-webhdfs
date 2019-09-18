@@ -42,3 +42,7 @@ ssh -D 1080 -f -N username@server
 > username@server's password:
 mount-webhdfs <server[:port]> --socks5h localhost
 ```
+
+# Logging
+
+Pass `--logfile <logfilename>` to enable logging fs operations.
