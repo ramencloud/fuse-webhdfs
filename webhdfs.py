@@ -38,8 +38,10 @@ def webhdfs_connect(config):
     if config.proxy_host:
         request_extra_opts['proxies'] ={'http': f'socks5h://{config.proxy_host}:{config.proxy_port}',
                                         'https': f'socks5h://{config.proxy_host}:{config.proxy_port}'}
+    if config.hdfs_user_name:
+        request_extra_opts['params'] ={'user.name': config.hdfs_user_name}
     client = PyWebHdfsClient(base_uri_pattern=config.hdfs_baseurl,
-                              request_extra_opts=request_extra_opts)
+                             request_extra_opts=request_extra_opts)
     return client
 
 def webhdfs_entry_to_dict(s):

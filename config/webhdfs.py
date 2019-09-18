@@ -8,7 +8,7 @@ class WebHDFSConfig:
     hdfs_baseurl: str
 
     hdfs_port: str = '30070'
-    hdfs_cert: str = None
+    hdfs_user_name: str = None
 
     proxy_host: str = None
     proxy_port: str = '1080'
@@ -40,6 +40,8 @@ def commandline_parser():
                         metavar='<server[:port]>',
                         help=f'If the port number is not specified, '
                              f'it is assumed to be {DEFAULT_HDFS_PORT}')
+
+    parser.add_argument('--user.name', dest='hdfs_user_name', help='HDFS user name')
 
     parser.add_argument('--socks5h', action=Split, dest='proxy_host:proxy_port', default=f':{DEFAULT_PROXY_PORT}',
                         metavar='<host[:port]>',
