@@ -203,9 +203,7 @@ if __name__ == '__main__':
     parser.add_argument('mountpoint', help='Mount directory')
 
     config = configure(parser)
-
-    logging.basicConfig(level=logging.INFO)
-
+    logging.basicConfig(level=logging.INFO, filename=config.logfile)
     print("Mounting {} at {}".format(config.hdfs_baseurl, config.mountpoint))
 
     fuse = FUSE(operations=WebHDFS(config), mountpoint=config.mountpoint, foreground=False, nothreads=True, big_writes=True, max_read=1024*1024, max_write=1024*1024)
