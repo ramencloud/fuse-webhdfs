@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import print_function, absolute_import, division
+import webhdfs
+import pywebhdfs.errors
 
 import os
 import sys
@@ -12,8 +14,6 @@ import urllib3
 urllib3.disable_warnings(urllib3.exceptions.SecurityWarning)
 
 sys.path.insert(0, ".")
-import pywebhdfs.errors
-import webhdfs
 
 logger = logging.getLogger('Webhdfs')
 CACHE_MAX_SECONDS = 30
@@ -43,7 +43,8 @@ class WebHDFS(LoggingMixIn, Operations):
         for s in self.client.list_dir(path)["FileStatuses"]["FileStatus"]:
             sd = webhdfs.webhdfs_entry_to_dict(s)
             # logger.debug("webhdfs_entry_to_dict %s: %s --> %s", sd['name'], s, sd)
-            logger.debug("Updating self._stats_cache[%s]", os.path.join(path, sd['name']))
+            logger.debug(
+                "Updating self._stats_cache[%s]", os.path.join(path, sd['name']))
             self._stats_cache[path + '/' + sd['name']] = (datetime.now(), sd)
             entries.append(sd['name'])
         self._listdir_cache[path] = (datetime.now(), entries)
@@ -56,7 +57,8 @@ class WebHDFS(LoggingMixIn, Operations):
             ts_delta = datetime.now() - self._stats_cache[path][0]
             if ts_delta.total_seconds() < CACHE_MAX_SECONDS:
                 sd = self._stats_cache[path][1]
-                logger.debug("_get_status: path %s --> cached status %s", path, sd)
+                logger.debug(
+                    "_get_status: path %s --> cached status %s", path, sd)
                 return sd
         # logger.info("get_file_dir_status: %s", path)
         s = self.client.get_file_dir_status(path)["FileStatus"]
@@ -96,33 +98,38 @@ class WebHDFS(LoggingMixIn, Operations):
         if offset >= self._get_status(path)['st_size']:
             data = b''
         else:
-            data = self.client.read_file(path, length=size, offset=offset)[:size]
+            data = self.client.read_file(
+                path, length=size, offset=offset)[:size]
         logger.info("read: path %s result size %d", path, len(data))
         return data
 
     def mkdir(self, path, mode):
         logger.info("mkdir %s", path)
-        self.client.make_dir(path, permission=oct(mode & 0o777).replace('0o', ''))
+        self.client.make_dir(path, permission=oct(
+            mode & 0o777).replace('0o', ''))
         self._flush_file_info(path)
         return 0
 
     def create(self, path, mode=int('755', 8)):
         perm = oct(int(mode) & 0o777).replace('0o', '')
         logger.info("Create %s perm %s", path, perm)
-        self.client.create_file(path, file_data=None, overwrite=True, permission=perm)
+        self.client.create_file(path, file_data=None,
+                                overwrite=True, permission=perm)
         self._flush_file_info(path)
         return 0
 
     def write(self, path, data, offset, fh):
         st = self._get_status(path)
-        logger.info("Writing to %s size %d at offset %d (file size %d)", path, len(data), offset, st['st_size'])
+        logger.info("Writing to %s size %d at offset %d (file size %d)",
+                    path, len(data), offset, st['st_size'])
         if offset + len(data) < st['st_size']:
             logger.warning("Can't write in the middle of the file %s. "
                            "Tried to write %d bytes at offset %d < file size %d",
                            path, len(data), offset, st['st_size'])
             raise FuseOSError(ENOTSUP)
         if offset > st['st_size']:
-            logger.warning("Can't write to %s at offset %d > file size %d", path, offset, st['st_size'])
+            logger.warning(
+                "Can't write to %s at offset %d > file size %d", path, offset, st['st_size'])
             raise FuseOSError(ENOTSUP)
         data_sub = data[st['st_size'] - offset:]
         # logger.info("Writing %s: %d bytes at offsets %d..%d",
@@ -167,7 +174,7 @@ class WebHDFS(LoggingMixIn, Operations):
         return 0
 
     def rename(self, old, new):
-        hdfs_path_old = old # [len(mountpoint):]
+        hdfs_path_old = old  # [len(mountpoint):]
         hdfs_path_new = os.path.join(os.path.dirname(hdfs_path_old), new)
         logger.info("Rename '%s' --> '%s'", hdfs_path_old, hdfs_path_new)
         res = self.client.rename_file_dir(hdfs_path_old, hdfs_path_new)
@@ -206,4 +213,5 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, filename=config.logfile)
     print("Mounting {} at {}".format(config.hdfs_baseurl, config.mountpoint))
 
-    fuse = FUSE(operations=WebHDFS(config), mountpoint=config.mountpoint, foreground=False, nothreads=True, big_writes=True, max_read=1024*1024, max_write=1024*1024)
+    fuse = FUSE(operations=WebHDFS(config), mountpoint=config.mountpoint, foreground=False,
+                nothreads=True, big_writes=True, max_read=1024*1024, max_write=1024*1024)

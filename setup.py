@@ -51,7 +51,7 @@ setup(
     # This is a one-line description or tagline of what your project does. This
     # corresponds to the "Summary" metadata field:
     # https://packaging.python.org/specifications/core-metadata/#summary
-    description='Mount Knox-protected WebHDFS on your local Linux or Mac file system',  # Required
+    description='Mount WebHDFS on your local Linux or Mac file system',  # Required
 
     # This is an optional longer description of your project that represents
     # the body of text which users will see when they visit PyPI.
@@ -67,15 +67,15 @@ setup(
     #
     # This field corresponds to the "Home-Page" metadata field:
     # https://packaging.python.org/specifications/core-metadata/#home-page-optional
-    url='https://github.com/IBM/fuse-webhdfs',  # Optional
+    url='https://github.com/ramencloud/fuse-webhdfs',  # Optional
 
     # This should be your name or the name of the organization which owns the
     # project.
-    author='Sasa Tomic',  # Optional
+    author='Piotr Cyrankiewicz',  # Optional
 
     # This should be a valid email address corresponding to the author listed
     # above.
-    author_email='sat@zurich.ibm.com',  # Optional
+    author_email='piotr.cyrankiewicz@dotdata.com',  # Optional
 
     license='Apache 2.0',
 
@@ -111,7 +111,7 @@ setup(
     # project page. What does your project relate to?
     #
     # Note that this is a string of words separated by whitespace, not a list.
-    keywords='Knox WebHDFS fuse mount remote HDFS',  # Optional
+    keywords='WebHDFS fuse mount remote HDFS',  # Optional
 
     # You can just specify package directories manually here if your project is
     # simple. Or you can use find_packages().
@@ -120,7 +120,7 @@ setup(
     # the `py_modules` argument instead as follows, which will expect a file
     # called `my_module.py` to exist:
     #
-    #   py_modules=["my_module"],
+    py_modules=["webhdfs", "mount_webhdfs"],
     #
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),  # Required
 
@@ -130,9 +130,13 @@ setup(
     #
     # For an analysis of "install_requires" vs pip's requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['fusepy'],  # Optional
+    install_requires=[
+        'fusepy',
+        'urllib3',
+        'requests[socks]'
+    ],  # Optional
 
-    python_requires='>=3.3.*, <4',    
+    python_requires='>=3.3.*, <4',
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). Users will be able to install these using the "extras"
@@ -174,7 +178,7 @@ setup(
     #    'console_scripts': [
     #        'sample=sample:main',
     #    ],
-    #},
+    # },
 
     # List additional URLs that are relevant to your project as a dict.
     #
@@ -186,9 +190,9 @@ setup(
     # maintainers, and where to support the project financially. The key is
     # what's used to render the link text on PyPI.
     project_urls={  # Optional
-        'Bug Reports': 'https://github.com/IBM/fuse-webhdfs/issues',
+        'Bug Reports': 'https://github.com/ramencloud/fuse-webhdfs',
         # 'Funding': 'https://donate.pypi.org',
         # 'Say Thanks!': 'http://saythanks.io/to/example',
-        'Source': 'https://github.com/IBM/fuse-webhdfs',
+        'Source': 'https://github.com/ramencloud/fuse-webhdfs',
     },
 )
